@@ -20,6 +20,7 @@ public sealed class GameplayCamera : Camera {
         _input = input;
 
         IsZoomSmooth = true;
+        ZoomMax = 4.0f;
         ZoomInertia = 10;
         IsMoveSmooth = true;
         MoveInertia = 5;

@@ -27,6 +27,7 @@ public sealed class GameplayScene : SceneBase {
     private MapManager _map;
     private UIManager _ui;
     private ResourceManager _resources;
+    private TimeManager _time;
 
     // Mouse selection
     private int _selectionX = -1;
@@ -46,6 +47,8 @@ public sealed class GameplayScene : SceneBase {
     public void NewGame( ) {
         _map = new MapManager((ContentController)_content, (ConfigController)_config, _input);
         _camera = new GameplayCamera((ConfigController)_config, _input, _map);
+        _time = new TimeManager( );
+        _ui.SetDebugTime(_time);
     }
 
     public override void OnShow( ) {
@@ -73,10 +76,10 @@ public sealed class GameplayScene : SceneBase {
         // Select tile
         if (_input.IsLMBPressedOnce() && _tileHovered != null) {
             // Selected new tile
-            if (_tileHovered != _tileSelected) {
+            if (_tileHovered != _tileSelected && _tileHovered.HasTileObject( )) {
                 _tileSelected = _tileHovered;
                 _ui.ShowTileInfo(_tileSelected);
-                _camera.LookAt(_tileSelected.DisplayX + ConfigController.TILE_SIZE * .5f + View.Width * 0.075f, _tileSelected.DisplayY + ConfigController.TILE_SIZE * .5f);
+                _camera.LookAt(_tileSelected.DisplayX + ConfigController.TILE_SIZE * .5f + (128 / _camera.Zoom), _tileSelected.DisplayY + ConfigController.TILE_SIZE * .5f);
 
             // Selected old tile (deselect)
             } else {
@@ -86,13 +89,21 @@ public sealed class GameplayScene : SceneBase {
         }
 
         // Temp
-        if (_input.IsKeyPressedOnce(Keys.Space)) {
+        if (_input.IsKeyPressedOnce(Keys.C)) {
             _map.AddUnit(new Unit((ContentController)_content, _input, _map.TileVillage));
         }
+
+        // Tick
+        if (_input.IsKeyPressedOnce(Keys.Space))
+            _time.NextTick(OnTickLogic);
 
         // Update UI
         _ui.SetDebugSelection(_selectionX, _selectionY);
         _ui.SetDebugCamera(_camera);
+    }
+
+    private void OnTickLogic( ) {
+        _ui.SetDebugTime(_time);
     }
 
     public override void Render(GameTime time) {
